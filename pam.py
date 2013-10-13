@@ -17,9 +17,6 @@ plot_args = {'rstride': 1, 'cstride': 1, 'cmap':
 
 
 def data_gen(framenumber, soln, plot):
-    global counter
-    global ax
-    counter += 1
     oldsoln = np.copy(soln)
     for i in range(1, size - 1):
         for j in range(1, size - 1):
