@@ -56,7 +56,7 @@ X, Y = np.meshgrid(X, Y)
 plot = ax.plot_surface(X, Y, soln, **plot_args)
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, plot),
-                                  interval=30, blit=False)
+                                  interval=10, blit=False)
 #pam_ani.save('pamPareto.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
 
 plt.show()
