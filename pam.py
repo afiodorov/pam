@@ -28,7 +28,10 @@ def data_gen(framenumber, soln, plot):
     norm = soln.max()
     for x in np.nditer(soln, op_flags=['readwrite']):
         x[...] = x / norm
+
     ax.clear()
+    ax.set_zlabel('renormolised solution')
+    ax.set_title('Parabolic Anderson Model. Time: ' + str(framenumber))
     plot = ax.plot_surface(X, Y, soln, **plot_args)
     return plot,
 
@@ -38,8 +41,6 @@ ax = fig.add_subplot(111, projection='3d')
 ax.set_xlim3d([0.0, size])
 ax.set_ylim3d([0.0, size])
 ax.set_zlim3d(1.0)
-ax.set_zlabel('renormolised solution')
-ax.set_title('Parabolic Anderson Model')
 
 potential = np.random.weibull(weib_par, (size, size))
 #potential = np.random.pareto(pareto_par, (size, size))
