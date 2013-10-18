@@ -5,33 +5,44 @@ import math as m
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
 
-time_step = 0.1
-weib_par = 2
-num_of_points_per_frame = 0
-initial_size = 3000
+time_step = 1
+weib_par = 20
+num_of_points_per_frame = 10
+initial_size = 300
+
+
+def a(time):
+    return m.log(time) ** (1 / weib_par)
+
+
+def d(time):
+    return (1 / weib_par) * (m.log(time) ** (1 / weib_par - 1))
 
 
 def rescale(x, time):
-
-    def a(time):
-        return m.log(time) ** (1 / weib_par)
-
-    def d(time):
-        return (1 / weib_par) * m.log(time) ** (1 / weib_par - 1)
-
     return (x - a(time)) / d(time)
 
 
-initial_time = initial_size * time_step // (num_of_points_per_frame + 1)
+def psi_rescale(x, i, time):
+    return (x - a(time) - i * m.log(m.log(time)) / (time * weib_par)) / d(time)
 
 
-def data_gen(framenumber, potential, plot):
+initial_time = 1.2
+#initial_time = initial_size * time_step // (num_of_points_per_frame + 1)
+
+
+def data_gen(framenumber, potential):
     for i in range(num_of_points_per_frame):
         potential.append(np.random.weibull(weib_par))
-    time = framenumber * time_step + time_step + initial_time
-    points = [rescale(x, time) for x in potential]
+    time = framenumber * time_step + initial_time
+    #points = [rescale(x, time) for x in potential]
+    points = [psi_rescale(row[0], row[1], time) for row in zip(potential,
+                                                               range(len(potential)))]
     #ax.relim()
     #ax.autoscale_view()
+    ax.set_xlim((1, len(points)))
+    #ax.set_xlim((1, 100))
+    ax.set_ylim((-20, 20))
     plot.set_data(range(len(points)), points)
     return plot,
 
@@ -41,8 +52,9 @@ points = [rescale(x, initial_time) for x in potential]
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-ax.set_ylim((0, 4))
+#ax.set_ylim((0, 4))
 plot, = plt.plot(range(initial_size), points, 'ro')
-pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(potential, plot),
-                                  interval=10, blit=True)
+ax.cla()
+pam_ani = animation.FuncAnimation(fig, data_gen, fargs=([potential]),
+                                  interval=1, blit=True)
 plt.show()
