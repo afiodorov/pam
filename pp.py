@@ -36,13 +36,13 @@ def data_gen(framenumber, potential):
         potential.append(np.random.weibull(weib_par))
     time = framenumber * time_step + initial_time
     #points = [rescale(x, time) for x in potential]
-    points = [psi_rescale(row[0], row[1], time) for row in zip(potential,
+    points = [psi_rescale(x, i, time) for x, i in zip(potential,
                                                                range(len(potential)))]
     #ax.relim()
     #ax.autoscale_view()
     ax.set_xlim((1, len(points)))
     #ax.set_xlim((1, 100))
-    ax.set_ylim((-20, 20))
+    ax.set_ylim((-10, 10))
     plot.set_data(range(len(points)), points)
     return plot,
 
@@ -52,7 +52,6 @@ points = [rescale(x, initial_time) for x in potential]
 
 fig = plt.figure()
 ax = fig.add_subplot(111)
-#ax.set_ylim((0, 4))
 plot, = plt.plot(range(initial_size), points, 'ro')
 ax.cla()
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=([potential]),
