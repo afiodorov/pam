@@ -8,7 +8,7 @@ import matplotlib.pyplot as plt
 time_step = 1
 num_of_points_per_frame = 1
 initial_size = 300
-weib_par = 1.5
+weib_par = 20
 pareto_par = 1
 
 #gen_potential = lambda: np.random.pareto(pareto_par)
@@ -56,13 +56,14 @@ def data_gen(framenumber, pospotential, negpotential, soln):
         soln.append(0)
         oldsoln = soln[:]
         time_step_pam = time_step // num_of_points_per_frame
+        # time_step_pam = time_step
         for n in range(1, len(pospotential) - 1):
             soln[n] = oldsoln[n] + time_step_pam * (
                         oldsoln[n] * (pospotential[n] - 2)
                         + oldsoln[n - 1] + oldsoln[n + 1])
 
         norm = max(soln)
-        soln = [x / norm for x in soln]
+        soln[:] = [x / norm for x in soln]
     ax_pam.set_xlim((-len(soln), len(soln)))
     ax_pam.set_ylim((0,1))
     plot_pam.set_data(range(len(soln)), soln)
@@ -80,7 +81,7 @@ fig = plt.figure()
 ax_pp = fig.add_subplot(121)
 ax_pam = fig.add_subplot(122)
 plot_pp, = ax_pp.plot([1], [1], 'ro', animated=True)
-plot_pam, = ax_pam.plot([0], [0], animated=True)
+plot_pam, = ax_pam.plot([0], [0], linewidth=3.0, animated=True)
 ax_pp.cla()
 
 soln = [0] * (initial_size + num_of_points_per_frame)
@@ -88,5 +89,5 @@ soln[0] = 1
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(pospotential,
                                                         negpotential, soln),
-                                  interval=1, blit=True)
+                                  interval=20, blit=True)
 plt.show()
