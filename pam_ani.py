@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 import mpl_toolkits.mplot3d.axes3d as p3
 import matplotlib.animation as animation
 import numpy as np
+import datetime
+import os
 
 size = 30
 time_step = 0.1
@@ -60,7 +62,11 @@ pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, plot),
                                   interval=10, blit=False, frames=1000)
 
 if save:
-    pam_ani.save("pam.mp4", writer="ffmpeg", fps=30, bitrate=20000)
+    basename = "pam"
+    suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
+    filename = "_".join([basename, suffix])
+    pam_ani.save(os.path.join("animations", filename + ".mp4"),
+                 writer="ffmpeg", fps=30, bitrate=20000)
 
 # swallow .tk exception - I believe it is a bug in matplotlib
 try:
