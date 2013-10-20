@@ -5,10 +5,9 @@ import numpy as np
 import math as m
 import matplotlib.animation as animation
 import matplotlib.pyplot as plt
-import matplotlib.lines as lines
+import matplotlib.lines as ln
 from functools import partial
 import weib
-from bottleneck import partsort
 
 time_step = 1
 initial_time = 30
@@ -45,18 +44,21 @@ def data_gen(framenumber, soln):
     ARR_LIMIT = int(m.log(m.log(curr_time)) * curr_time) // 2
     #ARR_LIMIT = 3 * int(r(curr_time)) // 2
     halfrt = int(r(curr_time)) // 2
-    pot_slice = np.concatenate([potential[-ARR_LIMIT:MAX_ARRAY_SIZE],
-                                potential[:ARR_LIMIT]])
 
     points = [0] * (2 * ARR_LIMIT)
+    max_points = [float("-inf"), float("-inf")]
     for i in (range(-ARR_LIMIT, ARR_LIMIT)):
         points[i] = psi_rescale(i, curr_time, potential)
+        if points[i] > max_points[0]:
+            max_points[1] = max_points[0]
+            max_points[0] = points[i]
+
     ax_pp.set_xlim((-ARR_LIMIT, ARR_LIMIT))
     #ax_pp.set_ylim((max(points) - 4, max(points) + 0.1))
     ax_pp.set_ylim((-10, 18))
     plot_pp.set_data(range(0, ARR_LIMIT) + range(-ARR_LIMIT, 0), points)
-    line_max.set_data((-ARR_LIMIT, ARR_LIMIT), (max(points), max(points)))
-    #line_sec.set_data((-ARR_LIMIT, ARR_LIMIT), (max(points), max(points)))
+    lines[0].set_data((-ARR_LIMIT, ARR_LIMIT), (max_points[0], max_points[0]))
+    lines[1].set_data((-ARR_LIMIT, ARR_LIMIT), (max_points[1], max_points[1]))
 
     if model:
         for i in range(2):
@@ -77,7 +79,7 @@ def data_gen(framenumber, soln):
         plot_pam.set_data(range(-halfrt, halfrt), soln_slice)
         return plot_pp, plot_pam
     else:
-        return plot_pp, line_max
+        return lines + [plot_pp]
 
 potential = np.random.weibull(weib_par, (MAX_ARRAY_SIZE))
 
@@ -89,8 +91,8 @@ else:
     ax_pp = fig.add_subplot(111)
 
 plot_pp, = ax_pp.plot([], [], 'r.', animated=True)
-line_max = lines.Line2D([], [], color='black', animated=True)
-line_sec = lines.Line2D([], [], color='black', animated=True)
+lines = [ln.Line2D([], [], color='black', animated=True),
+         ln.Line2D([], [], color='black', animated=True)]
 ax_pp.cla()
 
 if model:
@@ -100,8 +102,8 @@ soln = np.zeros(MAX_ARRAY_SIZE)
 soln[0] = 1
 initial_size = r(initial_time) // 2
 
-ax_pp.add_line(line_max)
-ax_pp.add_line(line_sec)
+for line in lines:
+    ax_pp.add_line(line)
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, ),
                                   interval=4, blit=True)
