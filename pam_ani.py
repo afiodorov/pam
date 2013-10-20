@@ -11,6 +11,7 @@ size = 30
 time_step = 0.1
 weib_par = 1.5
 pareto_par = 1
+save = 1
 plot_args = {'rstride': 1, 'cstride': 1, 'cmap':
              cm.bwr, 'linewidth': 0.01, 'antialiased': True, 'color': 'w',
              'shade': True}
@@ -40,7 +41,7 @@ fig = plt.figure()
 ax = fig.add_subplot(111, projection='3d')
 ax.set_xlim3d([0.0, size])
 ax.set_ylim3d([0.0, size])
-ax.set_zlim3d(1.0)
+ax.set_zlim3d([0.0, 1.0])
 
 potential = np.random.weibull(weib_par, (size, size))
 #potential = np.random.pareto(pareto_par, (size, size))
@@ -56,7 +57,13 @@ X, Y = np.meshgrid(X, Y)
 plot = ax.plot_surface(X, Y, soln, **plot_args)
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, plot),
-                                  interval=10, blit=False)
-#pam_ani.save('pamPareto.mp4', fps=30, extra_args=['-vcodec', 'libx264'])
+                                  interval=10, blit=False, frames=1000)
 
-plt.show()
+if save:
+    pam_ani.save("pam.mp4", writer="ffmpeg", fps=30, bitrate=20000)
+
+# swallow .tk exception - I believe it is a bug in matplotlib
+try:
+    plt.show()
+except AttributeError:
+    pass

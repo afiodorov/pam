@@ -8,10 +8,11 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as ln
 from functools import partial
 import weib
+import bottleneck as bn
 
 time_step = 1
 initial_time = 30
-weib_par = 4.5
+weib_par = 50
 pareto_par = 1
 MAX_ARRAY_SIZE = 10000
 model = 0
@@ -52,13 +53,17 @@ def data_gen(framenumber, soln):
         if points[i] > max_points[0]:
             max_points[1] = max_points[0]
             max_points[0] = points[i]
+        else:
+            if points[i] > max_points[1]:
+               max_points[1] = points[i]
 
-    ax_pp.set_xlim((-ARR_LIMIT, ARR_LIMIT))
-    #ax_pp.set_ylim((max(points) - 4, max(points) + 0.1))
-    ax_pp.set_ylim((-10, 18))
     plot_pp.set_data(range(0, ARR_LIMIT) + range(-ARR_LIMIT, 0), points)
     lines[0].set_data((-ARR_LIMIT, ARR_LIMIT), (max_points[0], max_points[0]))
     lines[1].set_data((-ARR_LIMIT, ARR_LIMIT), (max_points[1], max_points[1]))
+
+    ax_pp.set_xlim((-ARR_LIMIT, ARR_LIMIT))
+    ax_pp.set_ylim((max(points) - 10, max(points) + 1))
+    #ax_pp.set_ylim(90, 140)
 
     if model:
         for i in range(2):
@@ -91,8 +96,8 @@ else:
     ax_pp = fig.add_subplot(111)
 
 plot_pp, = ax_pp.plot([], [], 'r.', animated=True)
-lines = [ln.Line2D([], [], color='black', animated=True),
-         ln.Line2D([], [], color='black', animated=True)]
+lines = [ln.Line2D([], [], color='black', ls='--', lw=2, animated=True),
+         ln.Line2D([], [], color='green', ls=':', lw=2, animated=True)]
 ax_pp.cla()
 
 if model:
@@ -106,5 +111,10 @@ for line in lines:
     ax_pp.add_line(line)
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, ),
-                                  interval=4, blit=True)
-plt.show()
+                                  interval=4, blit=True, frames=MAX_ARRAY_SIZE)
+try:
+    plt.show()
+except AttributeError:
+    pass
+
+pam_ani.save("psi_pp.mp4", writer="ffmpeg", fps=30)
