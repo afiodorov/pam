@@ -8,22 +8,26 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as ln
 from functools import partial
 import weib
+import datetime
+import os
 
 time_step = 1
-initial_time = 30
+initial_time = 100
 weib_par = 50
 pareto_par = 1
 MAX_ARRAY_SIZE = 10000
-model = 0
+model = False
+save = True
+blit = False
+
+linestyle_max = {'color': 'black', 'ls': '--', 'lw': 2, 'animated': blit}
+linestyle_sec = {'color': 'green', 'ls': ':', 'lw': 2, 'animated': blit}
 
 # if weibul...
 a = partial(weib.a, par=weib_par)
 d = partial(weib.d, par=weib_par)
 r = partial(weib.r, par=weib_par)
-
-
-def rescale(x, t):
-    return (x - a(t)) / d(t)
+rescale = partial(weib.rescale, par=weib_par)
 
 
 def psi_rescale(i, t, pot):
@@ -40,6 +44,8 @@ def psi_rescale(i, t, pot):
 
 
 def data_gen(framenumber, soln):
+    global plot_pp
+
     curr_time = 2 * framenumber * time_step + initial_time
     ARR_LIMIT = int(m.log(m.log(curr_time)) * curr_time) // 2
     #ARR_LIMIT = 3 * int(r(curr_time)) // 2
@@ -47,21 +53,39 @@ def data_gen(framenumber, soln):
 
     points = [0] * (2 * ARR_LIMIT)
     max_points = [float("-inf"), float("-inf")]
+    max_index = [0, 0]
     for i in (range(-ARR_LIMIT, ARR_LIMIT)):
         points[i] = psi_rescale(i, curr_time, potential)
         if points[i] > max_points[0]:
             max_points[1] = max_points[0]
+            max_index[1] = max_index[0]
+            max_index[0] = i
             max_points[0] = points[i]
         else:
             if points[i] > max_points[1]:
-               max_points[1] = points[i]
-
-    plot_pp.set_data(range(0, ARR_LIMIT) + range(-ARR_LIMIT, 0), points)
-    lines[0].set_data((-ARR_LIMIT, ARR_LIMIT), (max_points[0], max_points[0]))
-    lines[1].set_data((-ARR_LIMIT, ARR_LIMIT), (max_points[1], max_points[1]))
+                max_index[1] = i
+                max_points[1] = points[i]
+    if blit:
+        plot_pp.set_data(range(0, ARR_LIMIT) + range(-ARR_LIMIT, 0), points)
+        lines[0].set_data((-ARR_LIMIT, ARR_LIMIT), (max_points[0],
+                                                    max_points[0]))
+        lines[1].set_data((-ARR_LIMIT, ARR_LIMIT), (max_points[1],
+                                                    max_points[1]))
+    else:
+        ax_pp.clear()
+        ax_pp.set_title("Rescaled point process in PAM")
+        plot_pp, = ax_pp.plot(range(0, ARR_LIMIT) + range(-ARR_LIMIT, 0),
+                              points, 'r.')
+        plot_pp_max, = ax_pp.plot([max_index[0]], [max_points[0]], 'bo')
+        plot_pp_sec, = ax_pp.plot([max_index[1]], [max_points[1]], 'go')
+        lines[0] = ln.Line2D([(-ARR_LIMIT, ARR_LIMIT)], (max_points[1],
+                                                         max_points[1]),
+                             **linestyle_sec)
+        ax_pp.add_line(lines[0])
 
     ax_pp.set_xlim((-ARR_LIMIT, ARR_LIMIT))
     ax_pp.set_ylim((max(points) - 10, max(points) + 1))
+    ax_pp.set_axis_off()
     #ax_pp.set_ylim(90, 140)
 
     if model:
@@ -81,7 +105,7 @@ def data_gen(framenumber, soln):
         soln_slice = np.concatenate([soln[-halfrt:MAX_ARRAY_SIZE],
                                     soln[:halfrt]])
         plot_pam.set_data(range(-halfrt, halfrt), soln_slice)
-        return plot_pp, plot_pam
+        return lines + [plot_pp, plot_pam]
     else:
         return lines + [plot_pp]
 
@@ -94,10 +118,11 @@ if model:
 else:
     ax_pp = fig.add_subplot(111)
 
-plot_pp, = ax_pp.plot([], [], 'r.', animated=True)
-lines = [ln.Line2D([], [], color='black', ls='--', lw=2, animated=True),
-         ln.Line2D([], [], color='green', ls=':', lw=2, animated=True)]
-ax_pp.cla()
+plot_pp, = ax_pp.plot([], [], 'r.', animated=blit)
+plot_pp_max, = ax_pp.plot([], [], 'b.', animated=blit)
+plot_pp_sec, = ax_pp.plot([], [], 'b.', animated=blit)
+lines = [ln.Line2D([], [], **linestyle_max),
+         ln.Line2D([], [], **linestyle_sec)]
 
 if model:
     ax_pam = fig.add_subplot(122)
@@ -110,10 +135,15 @@ for line in lines:
     ax_pp.add_line(line)
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, ),
-                                  interval=4, blit=True, frames=MAX_ARRAY_SIZE)
+                                  interval=4, blit=blit, frames=600)
+if save:
+    basename = "pp"
+    suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
+    filename = "_".join([basename, suffix])
+    pam_ani.save(os.path.join("animations", filename + ".mp4"),
+                 writer="ffmpeg", fps=30, bitrate=20000)
+
 try:
     plt.show()
 except AttributeError:
     pass
-
-pam_ani.save("psi_pp.mp4", writer="ffmpeg", fps=30)

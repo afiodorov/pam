@@ -47,7 +47,6 @@ ax.set_zlim3d([0.0, 1.0])
 
 potential = np.random.weibull(weib_par, (size, size))
 #potential = np.random.pareto(pareto_par, (size, size))
-# potential = np.zeros((size, size))
 
 soln = np.zeros((size, size))
 midpoint = size // 2
