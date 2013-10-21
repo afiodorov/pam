@@ -8,7 +8,6 @@ import matplotlib.pyplot as plt
 import matplotlib.lines as ln
 from functools import partial
 import weib
-import bottleneck as bn
 
 time_step = 1
 initial_time = 30
