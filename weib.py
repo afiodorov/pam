@@ -1,4 +1,5 @@
 from __future__ import division
+import numpy as np
 import math as m
 
 
@@ -11,8 +12,13 @@ def d(t, par):
 
 
 def r(t, par):
-    return t * d(t, par) / m.log(m.log(t))
+    return par * t * d(t, par) / m.log(m.log(t))
 
 
 def rescale(x, t, par):
     return (x - a(t, par)) / d(t, par)
+
+
+def maxrandom(n, par):
+    u = np.random.uniform()
+    return (-m.log(1 - u ** (1 / n))) ** (1 / par)

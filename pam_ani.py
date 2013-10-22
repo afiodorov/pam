@@ -13,7 +13,7 @@ size = 30
 time_step = 0.1
 weib_par = 1.5
 pareto_par = 1
-save = 1
+save = False
 plot_args = {'rstride': 1, 'cstride': 1, 'cmap':
              cm.bwr, 'linewidth': 0.01, 'antialiased': True, 'color': 'w',
              'shade': True}
@@ -34,7 +34,7 @@ def data_gen(framenumber, soln, plot):
 
     ax.clear()
     ax.set_zlabel('renormolised solution')
-    ax.set_title('Parabolic Anderson Model. Time: ' + str(framenumber))
+    ax.set_title('test')
     plot = ax.plot_surface(X, Y, soln, **plot_args)
     return plot,
 

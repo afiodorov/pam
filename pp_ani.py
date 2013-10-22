@@ -17,8 +17,8 @@ weib_par = 50
 pareto_par = 1
 MAX_ARRAY_SIZE = 10000
 model = False
-save = True
-blit = False
+save = False
+blit = True
 
 linestyle_max = {'color': 'black', 'ls': '--', 'lw': 2, 'animated': blit}
 linestyle_sec = {'color': 'green', 'ls': ':', 'lw': 2, 'animated': blit}
@@ -40,21 +40,20 @@ def psi_rescale(i, t, pot):
         nbgh2 = 1 / (pot[i] - pot[i - 1] + 2)
     else:
         nbgh2 = 0
-    return (pot[i] - a(t) + nbgh1 + nbgh2) / d(t) - abs(i) / (r(t) * weib_par)
+    return (pot[i] - a(r(t)) + nbgh1 + nbgh2) / d(r(t)) - abs(i) / r(t)
 
 
 def data_gen(framenumber, soln):
-    global plot_pp
+    global plot_pp, plot_pam, plot_pp_max, plot_pp_sec, lines
 
     curr_time = 2 * framenumber * time_step + initial_time
-    ARR_LIMIT = int(m.log(m.log(curr_time)) * curr_time) // 2
-    #ARR_LIMIT = 3 * int(r(curr_time)) // 2
+    size = int(m.log(m.log(curr_time)) * curr_time) // 2
     halfrt = int(r(curr_time)) // 2
 
-    points = [0] * (2 * ARR_LIMIT)
+    points = [0] * (2 * size)
     max_points = [float("-inf"), float("-inf")]
     max_index = [0, 0]
-    for i in (range(-ARR_LIMIT, ARR_LIMIT)):
+    for i in (range(-size, size)):
         points[i] = psi_rescale(i, curr_time, potential)
         if points[i] > max_points[0]:
             max_points[1] = max_points[0]
@@ -66,27 +65,29 @@ def data_gen(framenumber, soln):
                 max_index[1] = i
                 max_points[1] = points[i]
     if blit:
-        plot_pp.set_data(range(0, ARR_LIMIT) + range(-ARR_LIMIT, 0), points)
-        lines[0].set_data((-ARR_LIMIT, ARR_LIMIT), (max_points[0],
-                                                    max_points[0]))
-        lines[1].set_data((-ARR_LIMIT, ARR_LIMIT), (max_points[1],
+        for index in max_index:
+            points[index] = float("-inf")
+        plot_pp.set_data(range(0, size) + range(-size, 0), points)
+        lines[0].set_data((-size, size), (max_points[1],
                                                     max_points[1]))
+        plot_pp_max.set_data([max_index[0]], [max_points[0]])
+        plot_pp_sec.set_data([max_index[1]], [max_points[1]])
     else:
         ax_pp.clear()
         ax_pp.set_title("Rescaled point process in PAM")
-        plot_pp, = ax_pp.plot(range(0, ARR_LIMIT) + range(-ARR_LIMIT, 0),
+        plot_pp, = ax_pp.plot(range(0, size) + range(-size, 0),
                               points, 'r.')
-        plot_pp_max, = ax_pp.plot([max_index[0]], [max_points[0]], 'bo')
-        plot_pp_sec, = ax_pp.plot([max_index[1]], [max_points[1]], 'go')
-        lines[0] = ln.Line2D([(-ARR_LIMIT, ARR_LIMIT)], (max_points[1],
+        plot_pp_max, = ax_pp.plot([max_index[0]], [max_points[0]])
+        plot_pp_sec, = ax_pp.plot([max_index[1]], [max_points[1]])
+        lines[0] = ln.Line2D([(-size, size)], (max_points[1],
                                                          max_points[1]),
                              **linestyle_sec)
         ax_pp.add_line(lines[0])
 
-    ax_pp.set_xlim((-ARR_LIMIT, ARR_LIMIT))
-    ax_pp.set_ylim((max(points) - 10, max(points) + 1))
-    ax_pp.set_axis_off()
-    #ax_pp.set_ylim(90, 140)
+    ax_pp.set_xlim((-size, size))
+    ax_pp.set_ylim((max_points[0] - 10, max_points[0] + 1))
+    #ax_pp.set_axis_off()
+    #ax_pp.set_ylim(0, 1)
 
     if model:
         for i in range(2):
@@ -96,37 +97,35 @@ def data_gen(framenumber, soln):
                     oldsoln[n] * (potential[n])
                     + oldsoln[n - 1] + oldsoln[n + 1])
 
-            norm = soln.max()
+            norm = max(soln)
             for x in np.nditer(soln, op_flags=['readwrite']):
                 x[...] = x / norm
 
-        ax_pam.set_xlim((-halfrt, halfrt))
-        ax_pam.set_ylim((0, 1))
         soln_slice = np.concatenate([soln[-halfrt:MAX_ARRAY_SIZE],
                                     soln[:halfrt]])
-        plot_pam.set_data(range(-halfrt, halfrt), soln_slice)
-        return lines + [plot_pp, plot_pam]
+        if blit:
+            plot_pam.set_data(range(-halfrt, halfrt), soln_slice)
+        else:
+            plot_pam, = ax_pp.plot(range(-halfrt, halfrt), soln_slice,
+                                   linewidth=1.0)
+
+        return lines + [plot_pp_max, plot_pp_sec] + [plot_pp, plot_pam]
     else:
-        return lines + [plot_pp]
+        return lines + [plot_pp_max, plot_pp_sec] + [plot_pp]
 
 potential = np.random.weibull(weib_par, (MAX_ARRAY_SIZE))
 
 fig = plt.figure()
 
-if model:
-    ax_pp = fig.add_subplot(121)
-else:
-    ax_pp = fig.add_subplot(111)
-
+ax_pp = fig.add_subplot(111)
 plot_pp, = ax_pp.plot([], [], 'r.', animated=blit)
-plot_pp_max, = ax_pp.plot([], [], 'b.', animated=blit)
-plot_pp_sec, = ax_pp.plot([], [], 'b.', animated=blit)
-lines = [ln.Line2D([], [], **linestyle_max),
-         ln.Line2D([], [], **linestyle_sec)]
+plot_pp_max, = ax_pp.plot([], [], 'bo', animated=blit)
+plot_pp_sec, = ax_pp.plot([], [], 'go', animated=blit)
+lines = [ln.Line2D([], [], **linestyle_sec)]
+ax_pp.add_line(lines[0])
 
-if model:
-    ax_pam = fig.add_subplot(122)
-    plot_pam, = ax_pam.plot([], [], linewidth=1.0, animated=True)
+plot_pam, = ax_pp.plot([], [], linewidth=1.0, animated=blit)
+
 soln = np.zeros(MAX_ARRAY_SIZE)
 soln[0] = 1
 initial_size = r(initial_time) // 2
