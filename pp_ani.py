@@ -13,14 +13,13 @@ import os
 
 time_step = 1
 initial_time = 100
-weib_par = 50
+weib_par = 1.5
 pareto_par = 1
 MAX_ARRAY_SIZE = 10000
-model = False
-save = False
-blit = True
+model = True
+save = True
+blit = False
 
-linestyle_max = {'color': 'black', 'ls': '--', 'lw': 2, 'animated': blit}
 linestyle_sec = {'color': 'green', 'ls': ':', 'lw': 2, 'animated': blit}
 
 # if weibul...
@@ -40,15 +39,18 @@ def psi_rescale(i, t, pot):
         nbgh2 = 1 / (pot[i] - pot[i - 1] + 2)
     else:
         nbgh2 = 0
-    return (pot[i] - a(r(t)) + nbgh1 + nbgh2) / d(r(t)) - abs(i) / r(t)
+    return (pot[i] - a(r(t))) / d(r(t)) - abs(i) / r(t)
+    #return (pot[i] - a(r(t)) + nbgh1 + nbgh2) / d(r(t)) - abs(i) / r(t)
 
 
 def data_gen(framenumber, soln):
-    global plot_pp, plot_pam, plot_pp_max, plot_pp_sec, lines
+    if blit:
+        global plot_pp, plot_pam, plot_pp_max, plot_pp_sec, lines
 
     curr_time = 2 * framenumber * time_step + initial_time
-    size = int(m.log(m.log(curr_time)) * curr_time) // 2
+    #size = int(m.log(m.log(curr_time)) * curr_time) // 2
     halfrt = int(r(curr_time)) // 2
+    size = halfrt
 
     points = [0] * (2 * size)
     max_points = [float("-inf"), float("-inf")]
@@ -69,7 +71,7 @@ def data_gen(framenumber, soln):
             points[index] = float("-inf")
         plot_pp.set_data(range(0, size) + range(-size, 0), points)
         lines[0].set_data((-size, size), (max_points[1],
-                                                    max_points[1]))
+                                          max_points[1]))
         plot_pp_max.set_data([max_index[0]], [max_points[0]])
         plot_pp_sec.set_data([max_index[1]], [max_points[1]])
     else:
@@ -77,17 +79,16 @@ def data_gen(framenumber, soln):
         ax_pp.set_title("Rescaled point process in PAM")
         plot_pp, = ax_pp.plot(range(0, size) + range(-size, 0),
                               points, 'r.')
-        plot_pp_max, = ax_pp.plot([max_index[0]], [max_points[0]])
-        plot_pp_sec, = ax_pp.plot([max_index[1]], [max_points[1]])
+        plot_pp_max, = ax_pp.plot([max_index[0]], [max_points[0]], 'bo')
+        plot_pp_sec, = ax_pp.plot([max_index[1]], [max_points[1]], 'go')
         lines[0] = ln.Line2D([(-size, size)], (max_points[1],
-                                                         max_points[1]),
-                             **linestyle_sec)
+                             max_points[1]), **linestyle_sec)
         ax_pp.add_line(lines[0])
 
     ax_pp.set_xlim((-size, size))
-    ax_pp.set_ylim((max_points[0] - 10, max_points[0] + 1))
+    #ax_pp.set_ylim((max_points[0] - 10, max_points[0] + 1))
     #ax_pp.set_axis_off()
-    #ax_pp.set_ylim(0, 1)
+    ax_pp.set_ylim(-10, 2)
 
     if model:
         for i in range(2):
@@ -104,9 +105,9 @@ def data_gen(framenumber, soln):
         soln_slice = np.concatenate([soln[-halfrt:MAX_ARRAY_SIZE],
                                     soln[:halfrt]])
         if blit:
-            plot_pam.set_data(range(-halfrt, halfrt), soln_slice)
+            plot_pam.set_data(range(-halfrt, halfrt), 11 * soln_slice - 10)
         else:
-            plot_pam, = ax_pp.plot(range(-halfrt, halfrt), soln_slice,
+            plot_pam, = ax_pp.plot(range(-halfrt, halfrt), 11 * soln_slice - 10,
                                    linewidth=1.0)
 
         return lines + [plot_pp_max, plot_pp_sec] + [plot_pp, plot_pam]
@@ -134,7 +135,7 @@ for line in lines:
     ax_pp.add_line(line)
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, ),
-                                  interval=4, blit=blit, frames=600)
+                                  interval=2, blit=blit, frames=1000)
 if save:
     basename = "pp"
     suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
