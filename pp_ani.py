@@ -13,7 +13,7 @@ import os
 
 time_step = 1
 initial_time = 100
-weib_par = 1.5
+weib_par = 2.5
 pareto_par = 1
 MAX_ARRAY_SIZE = 10000
 
@@ -50,8 +50,10 @@ def data_gen(framenumber, soln):
 
     curr_time = 2 * framenumber * time_step + initial_time
     halfrt = int(r(curr_time)) // 2
-    size = int(m.log(m.log(curr_time)) * curr_time) // 2
-    #size = halfrt
+    if model:
+        size = halfrt
+    else:
+        size = int(m.log(m.log(curr_time)) * curr_time) // 2
 
     points = [0] * (2 * size)
     max_points = [float("-inf"), float("-inf")]
@@ -136,7 +138,7 @@ for line in lines:
     ax_pp.add_line(line)
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, ),
-                                  interval=2, blit=blit, frames=1000)
+                                  interval=5, blit=blit, frames=800)
 if save:
     basename = "pp"
     suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")

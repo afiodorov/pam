@@ -8,15 +8,22 @@ import matplotlib.animation as animation
 import numpy as np
 import datetime
 import os
+from matplotlib import rc
+rc('text', usetex=True)
+rc('font', family='serif')
 
 size = 30
 time_step = 0.1
-weib_par = 1.5
-pareto_par = 1
 save = False
+potential_type = 'weibull'
+pars = {'weibull': 8, 'pareto': 1}
 plot_args = {'rstride': 1, 'cstride': 1, 'cmap':
              cm.bwr, 'linewidth': 0.01, 'antialiased': True, 'color': 'w',
              'shade': True}
+
+
+def get_title():
+    return potential_type[0].upper() + potential_type[1:] + r'$(' + str(par) + r'$)'
 
 
 def data_gen(framenumber, soln, plot):
@@ -34,7 +41,7 @@ def data_gen(framenumber, soln, plot):
 
     ax.clear()
     ax.set_zlabel('renormolised solution')
-    ax.set_title('test')
+    ax.set_title(get_title())
     plot = ax.plot_surface(X, Y, soln, **plot_args)
     return plot,
 
@@ -45,8 +52,9 @@ ax.set_xlim3d([0.0, size])
 ax.set_ylim3d([0.0, size])
 ax.set_zlim3d([0.0, 1.0])
 
-potential = np.random.weibull(weib_par, (size, size))
-#potential = np.random.pareto(pareto_par, (size, size))
+par = pars.get(potential_type)
+gen_potential = getattr(np.random, potential_type)
+potential = gen_potential(par, (size, size))
 
 soln = np.zeros((size, size))
 midpoint = size // 2
@@ -65,7 +73,7 @@ if save:
     suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
     filename = "_".join([basename, suffix])
     pam_ani.save(os.path.join("animations", filename + ".mp4"),
-                 writer="ffmpeg", fps=30, bitrate=20000)
+                 writer="ffmpeg", fps=20, bitrate=20000)
 
 # swallow .tk exception - I believe it is a bug in matplotlib
 try:

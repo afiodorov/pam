@@ -24,7 +24,7 @@ xi = a(abs(z)) + 0.3
 ran = [x ** 3 for x in range(int(30 ** (1 / 3)), int(10000 ** (1 / 3)))]
 x = [abs(z) / r(t) for t in ran]
 y = [rescale(xi, r(t)) - abs(z) / r(t) for t in ran]
-ax.set_title("Trajectory of points in the transformed pointed process with time")
+ax.set_title("Trajectories of points in the transformed pointed process with time")
 plot, = ax.plot([-s for s in x], y, 'r<')
 plotl, = ax.plot([-s for s in x], y)
 plot2, = ax.plot(x, y, 'r>')
