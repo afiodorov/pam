@@ -15,7 +15,7 @@ rc('font', family='serif')
 size = 30
 time_step = 0.1
 save = True
-potential_type = ('weibull', 2.5)
+potential_type = ('weibull', float(2.5))
 plot_args = {'rstride': 1, 'cstride': 1, 'cmap':
              cm.bwr, 'linewidth': 0.01, 'antialiased': True, 'color': 'w',
              'shade': True}
@@ -24,8 +24,8 @@ plot_args = {'rstride': 1, 'cstride': 1, 'cmap':
 def get_title():
     try:
         getattr(np.random, potential_type[0])
-        return potential_type[0].upper() + potential_type[1:] + r'$(' + str(potential_type[1]) + r'$)'
-    except:
+        return potential_type[0][0].upper() + potential_type[0][1:] + r'$(' + str(potential_type[1]) + r'$)'
+    except AttributeError, e:
         return "No potential field"
 
 
@@ -56,9 +56,9 @@ ax.set_ylim3d([0.0, size])
 ax.set_zlim3d([0.0, 1.0])
 
 try:
-    gen_potential = getattr(np.random, potential_type)
+    gen_potential = getattr(np.random, potential_type[0])
     potential = gen_potential(potential_type[1], (size, size))
-except:
+except AttributeError:
     potential = np.zeros((size, size))
 
 soln = np.zeros((size, size))
