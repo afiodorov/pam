@@ -15,8 +15,7 @@ rc('font', family='serif')
 size = 30
 time_step = 0.1
 save = True
-potential_type = 'none'
-pars = {'weibull': 8, 'pareto': 1, 'none': None}
+potential_type = ('weibull', 2.5)
 plot_args = {'rstride': 1, 'cstride': 1, 'cmap':
              cm.bwr, 'linewidth': 0.01, 'antialiased': True, 'color': 'w',
              'shade': True}
@@ -24,8 +23,8 @@ plot_args = {'rstride': 1, 'cstride': 1, 'cmap':
 
 def get_title():
     try:
-        getattr(np.random, potential_type)
-        return potential_type[0].upper() + potential_type[1:] + r'$(' + str(par) + r'$)'
+        getattr(np.random, potential_type[0])
+        return potential_type[0].upper() + potential_type[1:] + r'$(' + str(potential_type[1]) + r'$)'
     except:
         return "No potential field"
 
@@ -56,11 +55,9 @@ ax.set_xlim3d([0.0, size])
 ax.set_ylim3d([0.0, size])
 ax.set_zlim3d([0.0, 1.0])
 
-par = pars.get(potential_type)
-
 try:
     gen_potential = getattr(np.random, potential_type)
-    potential = gen_potential(par, (size, size))
+    potential = gen_potential(potential_type[1], (size, size))
 except:
     potential = np.zeros((size, size))
 
@@ -81,7 +78,7 @@ if save:
     suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
     filename = "_".join([basename, suffix])
     pam_ani.save(os.path.join("animations", filename + ".mp4"),
-                 writer="ffmpeg", fps=100, bitrate=20000)
+                 writer="ffmpeg", fps=50, bitrate=20000)
 
 # swallow .tk exception - I believe it is a bug in matplotlib
 try:
