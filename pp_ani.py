@@ -16,9 +16,10 @@ initial_time = 100
 weib_par = 1.5
 pareto_par = 1
 MAX_ARRAY_SIZE = 10000
+
 model = True
 save = True
-blit = False
+blit = False if save else False
 
 linestyle_sec = {'color': 'green', 'ls': ':', 'lw': 2, 'animated': blit}
 
@@ -48,9 +49,9 @@ def data_gen(framenumber, soln):
         global plot_pp, plot_pam, plot_pp_max, plot_pp_sec, lines
 
     curr_time = 2 * framenumber * time_step + initial_time
-    #size = int(m.log(m.log(curr_time)) * curr_time) // 2
     halfrt = int(r(curr_time)) // 2
-    size = halfrt
+    size = int(m.log(m.log(curr_time)) * curr_time) // 2
+    #size = halfrt
 
     points = [0] * (2 * size)
     max_points = [float("-inf"), float("-inf")]
