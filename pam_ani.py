@@ -15,8 +15,8 @@ rc('font', family='serif')
 size = 30
 time_step = 0.1
 save = True
-potential_type = ('weibull', float(2.5))
-plot_args = {'rstride': 1, 'cstride': 1, 'cmap':
+potential_type = ('pareto', 1)
+plot_args = {'rstride': 2, 'cstride': 1, 'cmap':
              cm.bwr, 'linewidth': 0.01, 'antialiased': True, 'color': 'w',
              'shade': True}
 
@@ -71,14 +71,14 @@ X, Y = np.meshgrid(X, Y)
 plot = ax.plot_surface(X, Y, soln, **plot_args)
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, plot),
-                                  interval=20, blit=False, frames=1000)
+                                  interval=20, blit=False, frames=300)
 
 if save:
     basename = "pam"
     suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
     filename = "_".join([basename, suffix])
     pam_ani.save(os.path.join("animations", filename + ".mp4"),
-                 writer="ffmpeg", fps=50, bitrate=20000)
+                 writer="ffmpeg", fps=25, bitrate=20000)
 
 # swallow .tk exception - I believe it is a bug in matplotlib
 try:

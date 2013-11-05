@@ -138,7 +138,7 @@ for line in lines:
     ax_pp.add_line(line)
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, ),
-                                  interval=5, blit=blit, frames=800)
+                                  interval=5, blit=blit, frames=500)
 if save:
     basename = "pp"
     suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")

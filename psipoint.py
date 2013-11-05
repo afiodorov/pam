@@ -17,8 +17,9 @@ r = partial(weib.r, par=weib_par)
 rescale = partial(weib.rescale, par=weib_par)
 
 fig = plt.figure()
-ax1 = axes.Axes(fig, [0, 0, 0, 0])
 ax = fig.add_subplot(111)
+#ax1 = axes.Axes(fig, [0, 0, 0, 0])
+
 z = 10
 xi = a(abs(z)) + 0.3
 ran = [x ** 3 for x in range(int(30 ** (1 / 3)), int(10000 ** (1 / 3)))]
