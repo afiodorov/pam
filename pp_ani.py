@@ -18,6 +18,7 @@ pareto_par = 1
 MAX_ARRAY_SIZE = 10000
 
 model = True
+show = False
 save = True
 blit = False if save else False
 
@@ -49,7 +50,7 @@ def data_gen(framenumber, soln):
         global plot_pp, plot_pam, plot_pp_max, plot_pp_sec, lines
 
     curr_time = 2 * framenumber * time_step + initial_time
-    halfrt = int(r(curr_time)) // 2
+    halfrt = 5 * int(r(curr_time)) // 2
     if model:
         size = halfrt
     else:
@@ -138,15 +139,16 @@ for line in lines:
     ax_pp.add_line(line)
 
 pam_ani = animation.FuncAnimation(fig, data_gen, fargs=(soln, ),
-                                  interval=5, blit=blit, frames=500)
+                                  interval=5, blit=blit, frames=3000)
 if save:
     basename = "pp"
     suffix = datetime.datetime.now().strftime("%y%m%d_%H%M%S")
     filename = "_".join([basename, suffix])
     pam_ani.save(os.path.join("animations", filename + ".mp4"),
-                 writer="ffmpeg", fps=30, bitrate=20000)
+                 writer="ffmpeg", fps=100, bitrate=20000)
 
-try:
-    plt.show()
-except AttributeError:
-    pass
+if show:
+    try:
+        plt.show()
+    except AttributeError:
+        pass
